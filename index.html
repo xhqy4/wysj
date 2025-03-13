@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<html>
-<head>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -148,6 +146,7 @@
                 border-radius: 4px;
                 font-size: 16.5px; /* 微调字号 */
             }
+
     </style>
 </head>
 <body>
@@ -177,7 +176,8 @@
                 transform: translateY(-2px);
                 box-shadow: 0 0 25px rgba(0, 243, 255, 0.5);
             }
-        </style>
+    
+    </style>
         
         <!-- 修改canvas容器的内联样式 -->
         <div style="position: relative;">
@@ -489,6 +489,11 @@
                    player.y + player.size > obj.y;
         }
     
+        // 触摸控制相关变量
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isTouching = false;
+
         // 玩家控制
         const keysPressed = {};
         // 玩家控制
@@ -510,11 +515,63 @@
                 resetGame();
             }
         });
+        // 添加触摸事件监听
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', handleTouchEnd);
+
         document.addEventListener('keyup', (e) => {
             keysPressed[e.key.toLowerCase()] = false;
             // 已移除Q键切换极速模式功能
         });
     
+        // 触摸事件处理函数
+        function handleTouchStart(e) {
+          e.preventDefault();
+          const rect = canvas.getBoundingClientRect();
+          touchStartX = e.touches[0].clientX - rect.left;
+          touchStartY = e.touches[0].clientY - rect.top;
+          isTouching = true;
+
+        }
+
+        function handleTouchMove(e) {
+          e.preventDefault();
+          if (!isTouching) return;
+          
+          const rect = canvas.getBoundingClientRect();
+          const touchX = e.touches[0].clientX - rect.left;
+          const touchY = e.touches[0].clientY - rect.top;
+          
+          // 计算移动方向
+          const deltaX = touchX - touchStartX;
+          const deltaY = touchY - touchStartY;
+          
+          // 更新玩家位置
+          player.x = Math.max(0, Math.min(canvas.width - player.size, player.x + deltaX * 0.02));
+          player.y = Math.max(0, Math.min(canvas.height - player.size, player.y + deltaY * 0.02));
+          
+
+          
+
+        }
+
+        function handleTouchEnd() {
+          isTouching = false;
+        }
+
+        // 添加触摸拖尾粒子
+        function addTouchTrail(x, y) {
+          for (let i = 0; i < 3; i++) {
+            player.trail.push({
+              x: x - player.size/2,
+              y: y - player.size/2,
+              rotation: Math.random() * Math.PI*2,
+              alpha: 0.8
+            });
+          }
+        }
+
         function handleMovement() {
             const speed = 3; // 从5改为3，降低移动速度
             // 水平移动
@@ -878,8 +935,8 @@
         // 绑定重启事件
         restartButton.addEventListener('click', resetGame);
     </script>
-</body>
-</html>
+
+
 
 <style>
     /* 得分板样式 */
@@ -969,3 +1026,5 @@
         }
     }
 </style>
+    <div id="joystick"></div>
+</body></html>
